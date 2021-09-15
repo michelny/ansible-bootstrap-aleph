@@ -1,0 +1,19 @@
+---
+- block:
+    - name: "Clone Aleph repository"
+      raw: git clone https://github.com/alephdata/aleph.git
+
+    - name: "Download aleph configs"
+      raw: cd aleph && wget https://raw.githubusercontent.com/alephdata/aleph/main/aleph.env.tmpl && mv aleph.env.tmpl aleph.env
+
+    - name: "Make all"
+      raw: cd aleph && sudo sysctl -w vm.max_map_count=262144 && make docker-pull && make all
+
+    - name: "Increment max users watch"
+      raw: echo fs.inotify.max_user_watches=524288 | tee -a /etc/sysctl.conf && sysctl -p
+      become: true
+      become_user: root
+      become_method: sudo
+
+    - name: "Run aleph"
+      raw: docker-compose up -d
